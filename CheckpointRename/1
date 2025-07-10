@@ -1,0 +1,46 @@
+name: Build Mac App
+
+on: [push]  # 代码推送时自动触发
+
+jobs:
+  build:
+    runs-on: macos-latest  # 使用 macOS 虚拟机环境
+
+    steps:
+      # 1. 拉取代码
+      - uses: actions/checkout@v4
+
+      # 2. 设置 Python 环境
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+
+      # 4. 打包为 .app
+      - name: Build .app
+        run: |
+          pyinstaller \
+            --windowed \
+            --name "CheckpointRenamer" \
+            --icon icon.icns \
+            --noconfirm \
+            checkpoint_renamer.py
+
+      # 5. 压缩产物（可选）
+      - name: Zip .app
+        run: |
+          cd dist
+          zip -r CheckpointRenamer-Mac.zip CheckpointRenamer.app
+
+      # 6. 上传打包结果
+      - uses: actions/upload-artifact@v3
+        with:
+          name: CheckpointRenamer-Mac
+          path: |
+            dist/CheckpointRenamer.app
+            dist/CheckpointRenamer-Mac.zip
